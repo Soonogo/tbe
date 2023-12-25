@@ -28,6 +28,7 @@ export const Game1 = () => {
         }
     })
     useEffect(() => {
+        // @ts-ignore
         const x = res?.data?.data?.content?.fields?.game_account_map?.fields?.contents
         x?.length > 0 && setRemainingTimes(Number(x?.filter((t: any) => t.fields?.key === account?.address)?.[0]?.fields?.value));
     }, [res])

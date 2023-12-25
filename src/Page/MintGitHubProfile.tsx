@@ -1,7 +1,7 @@
 import { Button, Input } from "@nextui-org/react"
 import { useCallback, useState } from "react"
 import toast, { Toaster } from "react-hot-toast"
-import { PackageID, WeatherOracle } from "../constant"
+import { PackageID } from "../constant"
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { useCurrentAccount, useSignAndExecuteTransactionBlock } from "@mysten/dapp-kit";
 

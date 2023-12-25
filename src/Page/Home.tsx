@@ -1,4 +1,4 @@
-import { useCurrentAccount, useSignAndExecuteTransactionBlock, useSuiClient, useSuiClientQuery, useWallets } from "@mysten/dapp-kit";
+import { useCurrentAccount, useSignAndExecuteTransactionBlock, useSuiClient, useWallets } from "@mysten/dapp-kit";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { Card, CardBody } from "@nextui-org/react"
 import { GameShareOrbject, PackageID, WeatherOracle } from "../constant";

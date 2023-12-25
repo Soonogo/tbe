@@ -26,7 +26,6 @@ export const Home = () => {
             })
             // @ts-ignore
             const x = res?.data?.content?.fields?.account_map?.fields?.contents
-            console.log(x);
 
             setTimeStap(Number(x?.filter((t: any) => t.fields?.key === account?.address)?.[0]?.fields?.value));
         }())

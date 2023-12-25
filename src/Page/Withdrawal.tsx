@@ -51,7 +51,6 @@ export const Withdrawal = () => {
 
                 return result;
             }, {});
-            console.log(groupedByType);
 
             setOwnerCard(groupedByType);
 

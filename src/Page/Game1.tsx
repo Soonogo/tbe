@@ -77,7 +77,7 @@ export const Game1 = () => {
             setReload(!reload)
 
             clearInterval(timer.current)
-            toast.error(e.message)
+            toast.error("You can draw a prize every twelve hours")
         });
     }
 

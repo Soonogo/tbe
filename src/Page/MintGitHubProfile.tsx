@@ -18,7 +18,7 @@ export const MintGitHubProfile = () => {
         setProfileData({
             ...profileData,
             imgUrl: res.avatar_url,
-            description: res.bio,
+            description: res.bio ?? " ",
             login: res.login
         })
     }, [profileData])
@@ -26,7 +26,6 @@ export const MintGitHubProfile = () => {
 
     const execMintGithubNft = () => {
         const tx = new TransactionBlock();
-        const [coin] = tx.splitCoins(tx.gas, [1 * 1e9]);
         tx.moveCall({
             target: `${PackageID}::game::mint`,
             arguments: [
@@ -36,7 +35,6 @@ export const MintGitHubProfile = () => {
             ],
         });
         console.log(tx);
-        tx.transferObjects([coin], tx.pure(account?.address));
 
         signAndExecuteTransactionBlock({
             transactionBlock: tx,

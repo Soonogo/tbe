@@ -14,4 +14,4 @@
 
 * Collect all three types of cards to claim the prize pool, so go to SUI
 
-* Contract `0x22695956efab223626220d6835576b22aa2d5afdf2e9f3bbf99c658f215ffda5`
+* Contract `0xba01fb8304960724634e3d60a07dcb1dcb9062bcca421ec45be4cfebc81c6a19`

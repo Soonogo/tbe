@@ -7,7 +7,7 @@ export const Header = () => {
         <div className="flex justify-center items-center gap-2">
 
             <div className="cursor-pointer" onClick={() => { nav('/') }}><img className="w-20" src="logo.png" alt="logo" /></div>
-            <div className="cursor-pointer" onClick={() => { nav('/') }}>TBNE</div>
+            <div className="cursor-pointer" onClick={() => { nav('/') }}>TBE</div>
         </div>
 
         <div className="flex gap-4 justify-center items-center">

@@ -29,8 +29,12 @@ module game::card_collection {
 
     const EWITHDRAWAL:u64 = 1;
 
+    const EGAMEMAXMIUMERROR:u64 = 3;
+
 
     // --------------- Constant ---------------
+
+    const GAMEMAXMIUM:u64 = 3;
 
     const INPUTCOIN:u64 = 100_000_000;
 
@@ -73,6 +77,7 @@ module game::card_collection {
         balance: u64,
         coin: Balance<SUI>,
         account_map: VecMap<address, u64>,
+        game_account_map: VecMap<address, u64>,
     }
     
     // --------------- Function ---------------
@@ -133,6 +138,7 @@ module game::card_collection {
             balance:0,
             coin: balance::zero(),
             account_map: vec_map::empty(),
+            game_account_map: vec_map::empty(),
         })
     }
 
@@ -145,6 +151,7 @@ module game::card_collection {
 
             assert!(time - *value > DAILYTIME , EDAILY);
             vec_map::remove(&mut gameHouse.account_map, &receiver);
+            vec_map::remove(&mut gameHouse.game_account_map, &receiver);
             vec_map::insert(&mut gameHouse.account_map, receiver, time);
             daily_lottery(ctx)
         }else{
@@ -177,14 +184,23 @@ module game::card_collection {
         transfer::public_transfer(card,sender(ctx))
     }
 
+     fun destory_card(card: ClaimCard){
+         let ClaimCard {
+            id,
+            img_url:_,
+            type:_,
+            model:_,
+        } = card;
+        object::delete(id);
 
-    public entry fun withdrawal(card1: &mut ClaimCard, card2: &mut ClaimCard, card3: &mut ClaimCard,gameHouse:&mut GamePoolHouse,ctx: &mut TxContext){
+     }
+    public entry fun withdrawal(card1: ClaimCard, card2: ClaimCard, card3: ClaimCard,gameHouse:&mut GamePoolHouse,ctx: &mut TxContext){
         assert!(card1.model == 101, EWITHDRAWAL);
         assert!(card2.model == 102, EWITHDRAWAL);
         assert!(card3.model == 103, EWITHDRAWAL);
-        object::delete(card1.id);
-        object::delete(card2.id);
-        object::delete(card3.id);
+        destory_card(card1);
+        destory_card(card2);
+        destory_card(card3);
         let claim_split = balance::split(&mut gameHouse.coin, gameHouse.balance);
         let claim_value = coin::from_balance(claim_split, ctx);
         gameHouse.balance = 0;
@@ -192,12 +208,27 @@ module game::card_collection {
     }
 
    
+    fun update_user_game_status(gameHouse:&mut GamePoolHouse,value:u64,ctx: &mut TxContext){
+        let receiver = sender(ctx);
+        vec_map::remove(&mut gameHouse.game_account_map, &receiver);
+        vec_map::insert(&mut gameHouse.game_account_map, sender(ctx), value + 1);
+    }
 
-    public entry fun start_game2(gameHouse:&mut GamePoolHouse,guess: u8,coin:&mut Coin<SUI>,balance:u64,ctx: &mut TxContext){
+    public entry fun start_game(gameHouse:&mut GamePoolHouse,guess: u8,coin:&mut Coin<SUI>,balance:u64,ctx: &mut TxContext){
         let id = object::new(ctx);
         let r = 223321 % 3;
         let user_coin = coin::value(coin);
         assert!(coin::value(coin) == INPUTCOIN,ECOINERROR);
+        let receiver = sender(ctx);
+        
+        if (vec_map::contains(&mut gameHouse.game_account_map, &receiver)) {
+            let value = vec_map::get_mut(&mut gameHouse.game_account_map, &receiver);
+            assert!(*value != GAMEMAXMIUM, EGAMEMAXMIUMERROR);
+            update_user_game_status(gameHouse,*value,ctx)
+        }else{
+            vec_map::insert(&mut gameHouse.game_account_map, receiver, 1);
+        };
+
         let win=0;
         if(guess==0){
             if(r==0){

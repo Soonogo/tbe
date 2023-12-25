@@ -30,7 +30,7 @@ export const Game1 = () => {
         const tx = new TransactionBlock();
         const coin = tx.splitCoins(tx.gas, [1 * 1e8]);
         tx.moveCall({
-            target: `${PackageID}::card_collection::start_game2`,
+            target: `${PackageID}::card_collection::start_game`,
             arguments: [
                 tx.object(GameShareOrbject),
                 tx.pure(game1Data === "stone" ? 0 : game1Data === "scissors" ? 1 : 2),

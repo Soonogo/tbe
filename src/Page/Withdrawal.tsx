@@ -1,12 +1,13 @@
-import { useSignAndExecuteTransactionBlock, useSuiClientQuery } from "@mysten/dapp-kit";
+import { useCurrentAccount, useSignAndExecuteTransactionBlock, useSuiClientQuery } from "@mysten/dapp-kit";
 import { Card, CardBody } from "@nextui-org/react"
-import { GameShareOrbject, PackageID } from "../constant";
+import { CardType, GameShareOrbject, PackageID } from "../constant";
 import { useEffect, useState } from "react";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import toast from "react-hot-toast";
 
 export const Withdrawal = () => {
     const [data, setData] = useState<any>()
+    const account = useCurrentAccount();
     const res = useSuiClientQuery("getObject", {
         id: GameShareOrbject,
         options: {
@@ -17,6 +18,18 @@ export const Withdrawal = () => {
         setData(res?.data?.data);
     }, [res])
     const { mutateAsync: signAndExecuteTransactionBlock } = useSignAndExecuteTransactionBlock();
+
+
+    const getOwnered = useSuiClientQuery("getOwnedObjects", {
+        owner: account?.address ?? "",
+        options: {
+            showContent: true,
+        },
+        filter: {
+            StructType: CardType
+        }
+    })
+    console.log(getOwnered?.data);
 
     const withdrawal = () => {
         const tx = new TransactionBlock();

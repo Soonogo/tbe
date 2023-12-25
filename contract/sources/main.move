@@ -27,7 +27,7 @@ module game::card_collection {
 
     const EDAILY:u64 = 1;
 
-    const EWITHDRAWAL:u64 = 1;
+    const EWITHDRAWAL:u64 = 2;
 
     const EGAMEMAXMIUMERROR:u64 = 3;
 
@@ -38,7 +38,8 @@ module game::card_collection {
 
     const INPUTCOIN:u64 = 100_000_000;
 
-    const DAILYTIME:u64 = 60000 * 60 * 12; // Every 12 hours
+    // const DAILYTIME:u64 = 60000 * 60 * 12; // Every 12 hours
+    const DAILYTIME:u64 = 10000  ; // Every 12 hours
 
     struct Profile has key,store {
         id: UID,
@@ -57,6 +58,10 @@ module game::card_collection {
         id: ID,
         result: u32,
         win:u64
+    }
+
+    struct ObtainCard has copy, drop {
+        result: u32,
     }
 
     // --------------- Objects ---------------
@@ -78,6 +83,7 @@ module game::card_collection {
         coin: Balance<SUI>,
         account_map: VecMap<address, u64>,
         game_account_map: VecMap<address, u64>,
+        game_account_time_map: VecMap<address, u64>,
     }
     
     // --------------- Function ---------------
@@ -139,26 +145,31 @@ module game::card_collection {
             coin: balance::zero(),
             account_map: vec_map::empty(),
             game_account_map: vec_map::empty(),
+            game_account_time_map: vec_map::empty(),
         })
     }
 
     public entry fun daily_claim(gameHouse: &mut GamePoolHouse,clock: &Clock,ctx: &mut TxContext){
-        let time = timestamp_ms(clock);
+        let timestamp = timestamp_ms(clock);
         let receiver = sender(ctx);
         
         if (vec_map::contains(&mut gameHouse.account_map, &receiver)) {
             let value = vec_map::get(&mut gameHouse.account_map, &receiver);
-
-            assert!(time - *value > DAILYTIME , EDAILY);
-            vec_map::remove(&mut gameHouse.account_map, &receiver);
-            vec_map::remove(&mut gameHouse.game_account_map, &receiver);
-            vec_map::insert(&mut gameHouse.account_map, receiver, time);
+            assert!(timestamp - *value > DAILYTIME , EDAILY);
+            update_game_vec(gameHouse, ctx);
+            vec_map::insert(&mut gameHouse.account_map, receiver, timestamp);
             daily_lottery(ctx)
         }else{
-            vec_map::insert(&mut gameHouse.account_map, receiver, time);
+            vec_map::insert(&mut gameHouse.account_map, receiver, timestamp);
             daily_lottery(ctx)
 
         }
+    }
+
+  
+    fun update_game_vec( gameHouse:&mut GamePoolHouse,ctx: &mut TxContext){
+        let receiver = sender(ctx);
+        vec_map::remove(&mut gameHouse.account_map, &receiver);
     }
 
     fun daily_lottery(ctx: &mut TxContext){
@@ -166,11 +177,14 @@ module game::card_collection {
         let nine: u32 = 3865470566; // 90%
         let nine_nine: u32 = 4252017623; // 99%
         if(r < nine){
-             send_claim_nft(b"copper",b"https://ipfs.io/ipfs/bafkreiel7xfens3mgrvgycgj3qiv6qao44me76eu4f3ugwthhmnffjiafi",101,ctx)
+             send_claim_nft(b"copper",b"https://ipfs.io/ipfs/bafkreiel7xfens3mgrvgycgj3qiv6qao44me76eu4f3ugwthhmnffjiafi",101,ctx);
+             event::emit(ObtainCard{result:101});
             }else if(r < nine_nine){
-             send_claim_nft(b"silver",b"https://ipfs.io/ipfs/bafkreiarcgkfez4xn4kvcuntvd3h54rp34tif6phhg66aenykg7ha7x4wy",102,ctx)
+             send_claim_nft(b"silver",b"https://ipfs.io/ipfs/bafkreiarcgkfez4xn4kvcuntvd3h54rp34tif6phhg66aenykg7ha7x4wy",102,ctx);
+             event::emit(ObtainCard{result:102})
             }else{
-             send_claim_nft(b"gold",b"https://ipfs.io/ipfs/bafkreihkanwafumvbi7kcr7i5mawdofpscagnw7tzvg5j4hbqhutb7fmza",103,ctx)
+             send_claim_nft(b"gold",b"https://ipfs.io/ipfs/bafkreihkanwafumvbi7kcr7i5mawdofpscagnw7tzvg5j4hbqhutb7fmza",103,ctx);
+             event::emit(ObtainCard{result:103})
         }
     }
 
@@ -208,14 +222,21 @@ module game::card_collection {
     }
 
    
-    fun update_user_game_status(gameHouse:&mut GamePoolHouse,value:u64,ctx: &mut TxContext){
+    fun update_user_game_status(clock:u64,gameHouse:&mut GamePoolHouse,value:u64,ctx: &mut TxContext){
         let receiver = sender(ctx);
         vec_map::remove(&mut gameHouse.game_account_map, &receiver);
         vec_map::insert(&mut gameHouse.game_account_map, sender(ctx), value + 1);
     }
+    public entry fun coining(coin:&mut Coin<SUI>,balance:u64,gameHouse:&mut GamePoolHouse,ctx:&mut TxContext){
+            let split_coin = coin::split(coin, balance, ctx);
+            let coin_amount = coin::into_balance(split_coin);
+            balance::join(&mut gameHouse.coin,coin_amount);
+            gameHouse.balance = gameHouse.balance + balance;
+    }
 
-    public entry fun start_game(gameHouse:&mut GamePoolHouse,guess: u8,coin:&mut Coin<SUI>,balance:u64,ctx: &mut TxContext){
+    public entry fun start_game(gameHouse:&mut GamePoolHouse,guess: u8,clock:&Clock,coin:&mut Coin<SUI>,balance:u64,ctx: &mut TxContext){
         let id = object::new(ctx);
+        let timestamp = timestamp_ms(clock);
         let r = 223321 % 3;
         let user_coin = coin::value(coin);
         assert!(coin::value(coin) == INPUTCOIN,ECOINERROR);
@@ -223,10 +244,22 @@ module game::card_collection {
         
         if (vec_map::contains(&mut gameHouse.game_account_map, &receiver)) {
             let value = vec_map::get_mut(&mut gameHouse.game_account_map, &receiver);
-            assert!(*value != GAMEMAXMIUM, EGAMEMAXMIUMERROR);
-            update_user_game_status(gameHouse,*value,ctx)
+            let value2 = vec_map::get_mut(&mut gameHouse.game_account_time_map, &receiver);
+            if(*value == GAMEMAXMIUM){
+                assert!(*value2 + 60000 < timestamp, 10);
+                vec_map::remove(&mut gameHouse.game_account_time_map, &receiver);
+                vec_map::remove(&mut gameHouse.game_account_map, &receiver);
+                vec_map::insert(&mut gameHouse.game_account_map, receiver, 1);
+                vec_map::insert(&mut gameHouse.game_account_time_map, sender(ctx), timestamp);
+               
+            }else{
+                update_user_game_status(timestamp,gameHouse,*value,ctx)
+            }
+            // assert!(*value != GAMEMAXMIUM, EGAMEMAXMIUMERROR);
+            
         }else{
             vec_map::insert(&mut gameHouse.game_account_map, receiver, 1);
+            vec_map::insert(&mut gameHouse.game_account_time_map, receiver, timestamp);
         };
 
         let win=0;

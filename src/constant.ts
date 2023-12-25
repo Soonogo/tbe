@@ -1,6 +1,6 @@
-export const PackageID = "0x0679af2c49fb607ec5a55076f943bac945ab8af0f7b7e177245996ab27805c2d"
+export const PackageID = "0x5313b5d7fcb35c8e57e9144fe3ed6bd47a1b3397f994a5e30f010dd23123dbee"
 
-export const GameShareOrbject = "0x8936cc261f86ed7df8a813c8d2b5f4c4e52bc11642cc5fc1ee3d9104811f3286"
+export const GameShareOrbject = "0x38606c508a07272380935ba68a9f926afab350ab2913372ae7ca5eee5ec29423"
 
 export const CardType = `${PackageID}::card_collection::ClaimCard`
 

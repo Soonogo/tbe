@@ -17,6 +17,9 @@ dependencies:
   '@tanstack/react-query':
     specifier: ^5.14.1
     version: 5.14.1(react@18.2.0)
+  canvas-confetti:
+    specifier: ^1.9.2
+    version: 1.9.2
   client:
     specifier: link:@mysten/sui.js/client
     version: link:@mysten/sui.js/client
@@ -37,6 +40,9 @@ dependencies:
     version: 6.21.0(react-dom@18.2.0)(react@18.2.0)
 
 devDependencies:
+  '@types/canvas-confetti':
+    specifier: ^1.6.4
+    version: 1.6.4
   '@types/react':
     specifier: ^18.2.43
     version: 18.2.43
@@ -3533,6 +3539,10 @@ packages:
       react: 18.2.0
     dev: false
 
+  /@types/canvas-confetti@1.6.4:
+    resolution: {integrity: sha512-fNyZ/Fdw/Y92X0vv7B+BD6ysHL4xVU5dJcgzgxLdGbn8O3PezZNIJpml44lKM0nsGur+o/6+NZbZeNTt00U1uA==}
+    dev: true
+
   /@types/json-schema@7.0.15:
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
     dev: true
@@ -3906,6 +3916,10 @@ packages:
   /caniuse-lite@1.0.30001570:
     resolution: {integrity: sha512-+3e0ASu4sw1SWaoCtvPeyXp+5PsjigkSt8OXZbF9StH5pQWbxEjLAZE3n8Aup5udop1uRiKA7a4utUk/uoSpUw==}
     dev: true
+
+  /canvas-confetti@1.9.2:
+    resolution: {integrity: sha512-6Xi7aHHzKwxZsem4mCKoqP6YwUG3HamaHHAlz1hTNQPCqXhARFpSXnkC9TWlahHY5CG6hSL5XexNjxK8irVErg==}
+    dev: false
 
   /chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}

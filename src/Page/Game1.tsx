@@ -3,13 +3,18 @@ import { GameShareOrbject, PackageID, WeatherOracle } from "../constant";
 import { useCurrentAccount, useSignAndExecuteTransactionBlock, useSuiClientQuery, useWallets } from "@mysten/dapp-kit";
 import toast, { Toaster } from "react-hot-toast";
 import { useEffect, useRef, useState } from "react";
+import { strewFlowers } from "../utils";
+import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react";
 
 export const Game1 = () => {
+    const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+    const [reload, setReload] = useState(false)
     const { } = useWallets()
     const account = useCurrentAccount();
     const { mutateAsync: signAndExecuteTransactionBlock, status } = useSignAndExecuteTransactionBlock();
     const [game1Data, setGame1Data] = useState("stone")
-
+    const [remainingTimes, setRemainingTimes] = useState(0)
     useEffect(() => {
         if (status === "error") {
             clearInterval(timer.current)
@@ -23,8 +28,10 @@ export const Game1 = () => {
         }
     })
     useEffect(() => {
-        console.log(res?.data?.data);
+        const x = res?.data?.data?.content?.fields?.game_account_map?.fields?.contents
+        x?.length > 0 && setRemainingTimes(Number(x?.filter((t: any) => t.fields?.key === account?.address)?.[0]?.fields?.value));
     }, [res])
+
 
     const execGame1 = () => {
         const tx = new TransactionBlock();
@@ -34,6 +41,7 @@ export const Game1 = () => {
             arguments: [
                 tx.object(GameShareOrbject),
                 tx.pure(game1Data === "stone" ? 0 : game1Data === "scissors" ? 1 : 2),
+                tx.pure("0x06"),
                 coin,
                 tx.pure(1 * 1e8)
             ],
@@ -47,13 +55,25 @@ export const Game1 = () => {
                 showEvents: true
             }
         }).then(async (result: any) => {
+            const gameResult = result?.events[0]?.parsedJson.win
             setStartGame(false)
+            setReload(!reload)
+
             clearInterval(timer.current)
-            result?.events[0]?.parsedJson.win === "2" && toast.success("You Won!")
+            if (gameResult === "1") {
+                setObtainCard(result?.events[1]?.parsedJson.result)
+                toast.success("You Won!")
+                strewFlowers()
+                onOpen()
+            }
+            gameResult === "2" && toast.error("You Lose!")
+            gameResult === "0" && toast.error("Game Tie! Return amount.")
             console.log(result);
         }, (e) => {
             console.log(e.message);
             setStartGame(false);
+            setReload(!reload)
+
             clearInterval(timer.current)
             toast.error(e.message)
         });
@@ -62,6 +82,8 @@ export const Game1 = () => {
 
     const [startGame, setStartGame] = useState(false)
     const timer = useRef<any>()
+    const [obtainCard, setObtainCard] = useState("")
+
 
     const [count, setCount] = useState(0)
 
@@ -93,6 +115,28 @@ export const Game1 = () => {
         <div>
             <button className="button" onClick={() => { execGame1(); setStartGame(true) }}>Star Game</button>
         </div>
-        {/* <h1 onClick={execGame1}>Game1</h1> */}
+        <div>
+            <h1>Remaining <span className="border p-1 rounded-md">{3 - remainingTimes}</span> times </h1>
+        </div>
+        <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+            <ModalContent>
+                {(onClose) => (
+                    <>
+                        <ModalHeader className="flex flex-col gap-1">Obtain Rewards</ModalHeader>
+                        <ModalBody className="flex justify-center items-center">
+                            <img className="w-48" src={`${obtainCard}.webp`} alt="" />
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button color="danger" variant="light" onPress={onClose}>
+                                Close
+                            </Button>
+                            <Button color="primary" onPress={onClose}>
+                                OK
+                            </Button>
+                        </ModalFooter>
+                    </>
+                )}
+            </ModalContent>
+        </Modal>
     </div>
 }

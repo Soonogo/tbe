@@ -4,25 +4,34 @@ import { Card, CardBody } from "@nextui-org/react"
 import { GameShareOrbject, PackageID } from "../constant";
 import toast, { Toaster } from "react-hot-toast";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { strewFlowers } from "../utils";
 
 export const Home = () => {
     const { } = useWallets()
     const account = useCurrentAccount();
+    const [reload, setReload] = useState(false)
     const { mutateAsync: signAndExecuteTransactionBlock } = useSignAndExecuteTransactionBlock();
-
+    const client = useSuiClient()
     const [timeStap, setTimeStap] = useState(0)
     const [timeStapValue, setTimeStapValue] = useState("")
-    const res = useSuiClientQuery("getObject", {
-        id: GameShareOrbject,
-        options: {
-            showContent: true
-        }
-    })
+
     useEffect(() => {
-        // @ts-ignore
-        const x = res?.data?.data?.content?.fields?.account_map?.fields?.contents
-        setTimeStap(Number(x?.filter((t: any) => t.fields?.key === account?.address)?.[0]?.fields?.value));
-    }, [res, account])
+        (async function () {
+
+            const res = await client.getObject({
+                id: GameShareOrbject,
+                options: {
+                    showContent: true
+                }
+            })
+            // @ts-ignore
+            const x = res?.data?.content?.fields?.account_map?.fields?.contents
+            console.log(x);
+
+            setTimeStap(Number(x?.filter((t: any) => t.fields?.key === account?.address)?.[0]?.fields?.value));
+        }())
+
+    }, [account, reload])
     useEffect(() => {
         timer.current = setInterval(updateCountdown, 1000);
         return () => {
@@ -48,7 +57,7 @@ export const Home = () => {
         !Number.isNaN(hours) && setTimeStapValue("Cooling time: " + hours + "h " + minutes + "m " + seconds + "s");
     }, [timeStap])
 
-
+    const [obtainCard, setObtainCard] = useState("")
     const execClaim = () => {
         const tx = new TransactionBlock();
         tx.moveCall({
@@ -66,11 +75,16 @@ export const Home = () => {
                 showEvents: true
             }
         }).then(async (result: any) => {
-            result?.events[0]?.parsedJson.win === "2" && toast.success("You Won!")
+            toast.success("Execute Successful!")
+            strewFlowers()
+            setReload(!reload)
             console.log(result);
+            setObtainCard(result?.events[0]?.parsedJson.result)
+
         }, (e) => {
             toast.error("Execute Fail")
             console.log(e.message);
+            setReload(!reload)
 
         });
     }
@@ -99,6 +113,7 @@ export const Home = () => {
     //         toast.error(e.message)
     //     });
     // }
+
     return <div className=" w-full border flex flex-col gap-5 justify-center items-center h-screen">
         <Toaster
             position="top-center"
@@ -107,14 +122,14 @@ export const Home = () => {
         <Card>
             <CardBody className="flex flex-col gap-2 rounded-xl">
                 <div className="flex items-center justify-center p-2 shadow-md">
-                    <img className="w-52" src="1.webp" alt="" />
+                    <img className="w-52" src={obtainCard === "" ? `1.webp` : `${obtainCard}.webp`} alt="" />
                 </div>
                 <button className="button" onClick={() => { execClaim() }}>Claim</button>
 
             </CardBody>
         </Card>
         <div className="w-60 text-center">
-            <div>{timeStapValue}&nbsp;</div>
+            <div >{timeStapValue}&nbsp;</div>
         </div>
-    </div>
+    </div >
 }

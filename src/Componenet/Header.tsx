@@ -12,6 +12,8 @@ export const Header = () => {
 
         <div className="flex gap-4 justify-center items-center">
 
+            <div className="cursor-pointer" onClick={() => { nav('/how_to_play') }}>
+                <img className="w-7 " src="what.svg" alt="" /> </div>
             <h1 className="cursor-pointer" onClick={() => { nav('/reward') }}>Reward</h1>
             <h1 className="cursor-pointer" onClick={() => { nav('/game') }}>Game</h1>
             <h1 className="cursor-pointer" onClick={() => { nav('/mint') }}>Mint</h1>

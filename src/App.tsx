@@ -4,6 +4,7 @@ import { Header } from './Componenet/Header';
 import { Game1 } from './Page/Game1';
 import { Home } from './Page/Home';
 import { Withdrawal } from './Page/Withdrawal';
+import { HowToPlay } from './Page/HowToPlay';
 
 const Layout = () => (
   <>
@@ -18,6 +19,10 @@ const router = createHashRouter([
       {
         path: "/",
         element: <Home />,
+      },
+      {
+        path: "/how_to_play",
+        element: <HowToPlay />,
       },
       {
         path: "/game",

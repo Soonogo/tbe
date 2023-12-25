@@ -2,7 +2,7 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { GameShareOrbject, PackageID, WeatherOracle } from "../constant";
 import { useCurrentAccount, useSignAndExecuteTransactionBlock, useSuiClientQuery, useWallets } from "@mysten/dapp-kit";
 import toast, { Toaster } from "react-hot-toast";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { strewFlowers } from "../utils";
 import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react";
 
@@ -14,7 +14,15 @@ export const Game1 = () => {
     const account = useCurrentAccount();
     const { mutateAsync: signAndExecuteTransactionBlock, status } = useSignAndExecuteTransactionBlock();
     const [game1Data, setGame1Data] = useState("stone")
+    const [count, setCount] = useState(0)
+    const [startGame, setStartGame] = useState(false)
+    const timer = useRef<any>()
+    const [obtainCard, setObtainCard] = useState("")
+    const [timeStap, setTimeStap] = useState(0)
+    const [timeStapValue, setTimeStapValue] = useState("")
     const [remainingTimes, setRemainingTimes] = useState(0)
+    const timer2 = useRef<any>()
+
     useEffect(() => {
         if (status === "error") {
             clearInterval(timer.current)
@@ -30,7 +38,11 @@ export const Game1 = () => {
     useEffect(() => {
         // @ts-ignore
         const x = res?.data?.data?.content?.fields?.game_account_map?.fields?.contents
+        // @ts-ignore
+        const x2 = res?.data?.data?.content?.fields?.game_account_time_map?.fields?.contents
         x?.length > 0 && setRemainingTimes(Number(x?.filter((t: any) => t.fields?.key === account?.address)?.[0]?.fields?.value));
+        setTimeStap(Number(x2?.filter((t: any) => t.fields?.key === account?.address)?.[0]?.fields?.value));
+
     }, [res])
 
 
@@ -82,12 +94,30 @@ export const Game1 = () => {
     }
 
 
-    const [startGame, setStartGame] = useState(false)
-    const timer = useRef<any>()
-    const [obtainCard, setObtainCard] = useState("")
 
+    useEffect(() => {
+        timer.current = setInterval(updateCountdown, 1000);
+        return () => {
+            clearInterval(timer2.current);
+        }
+    }, [timeStap])
 
-    const [count, setCount] = useState(0)
+    const updateCountdown = useCallback(() => {
+        let currentTimestamp = Math.floor(new Date().getTime() / 1000);
+
+        let remainingTimeInSeconds = (timeStap + 60000 * 60 * 2) / 1000 - currentTimestamp;
+
+        if (remainingTimeInSeconds <= 0) {
+            clearInterval(timer2.current);
+            return;
+        }
+
+        let hours = Math.floor(remainingTimeInSeconds / 3600);
+        let minutes = Math.floor((remainingTimeInSeconds % 3600) / 60);
+        let seconds = Math.floor(remainingTimeInSeconds % 60);
+
+        !Number.isNaN(hours) && setTimeStapValue("Cooling time: " + hours + "h " + minutes + "m " + seconds + "s");
+    }, [timeStap])
 
     useEffect(() => {
         if (startGame) {
@@ -98,6 +128,8 @@ export const Game1 = () => {
             }, 200)
         }
     }, [startGame])
+
+
     return <div className=" w-full border flex flex-col gap-5 justify-center items-center h-screen">
         <Toaster
             position="top-center"
@@ -117,8 +149,9 @@ export const Game1 = () => {
         <div>
             <button className="button" onClick={() => { execGame1(); setStartGame(true) }}>Star Game</button>
         </div>
-        <div>
+        <div className="flex flex-col justify-center items-center">
             <h1>Remaining <span className="border p-1 rounded-md">{3 - remainingTimes}</span> times </h1>
+            <div>{timeStapValue}</div>
         </div>
         <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
             <ModalContent>

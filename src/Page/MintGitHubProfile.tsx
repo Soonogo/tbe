@@ -13,7 +13,6 @@ export const MintGitHubProfile = () => {
     const searchProfile = useCallback(async () => {
         toast('Requesting data from Github!');
         const res = await (await fetch("https://api.github.com/users/" + profileData.userName)).json()
-        console.log(res);
 
         setProfileData({
             ...profileData,

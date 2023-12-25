@@ -1,5 +1,5 @@
 import { Button, Input } from "@nextui-org/react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import toast, { Toaster } from "react-hot-toast"
 import { PackageID, WeatherOracle } from "../constant"
 import { TransactionBlock } from "@mysten/sui.js/transactions";
@@ -28,7 +28,7 @@ export const MintGitHubProfile = () => {
         const tx = new TransactionBlock();
         const [coin] = tx.splitCoins(tx.gas, [1 * 1e9]);
         tx.moveCall({
-            target: `${PackageID}::card_collection::mint`,
+            target: `${PackageID}::game::mint`,
             arguments: [
                 tx.pure(profileData.userName),
                 tx.pure(profileData.imgUrl),

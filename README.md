@@ -1,30 +1,17 @@
-# React + TypeScript + Vite
+# TBE
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+* You can draw a prize every twelve hours
 
-Currently, two official plugins are available:
+* I can play rock scissors and cloth three times every two hours
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+* Each stone scissors cloth consumes `0.1` SUI
 
-## Expanding the ESLint configuration
+* The consumed SUI will accumulate in the pool
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+* Randomly give one of the three cards in the lottery
 
-- Configure the top-level `parserOptions` property like this:
+* The probabilities are `90%`, `9%`, and `1%`, respectively
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+* Collect all three types of cards to claim the prize pool, so go to SUI
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+* Contract `0x22695956efab223626220d6835576b22aa2d5afdf2e9f3bbf99c658f215ffda5`

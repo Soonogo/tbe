@@ -3,10 +3,10 @@ compiled_package_info:
   package_name: game
   address_alias_instantiation:
     game: "0000000000000000000000000000000000000000000000000000000000000000"
-    oracle: "0000000000000000000000000000000000000000000000000000000000000000"
+    oracle: 8378b3bd39931aa74a6aa3a820304c1109d327426e4275183ed0b797eb6660a8
     std: "0000000000000000000000000000000000000000000000000000000000000001"
     sui: "0000000000000000000000000000000000000000000000000000000000000002"
-  source_digest: B549A6D006E55E1F90CDBC86F7828B3D9B17BD5157243532700BC32F63236E9D
+  source_digest: D0E996C62C28D1F85AC0EC22A551A7748375485C0135320021477F3A5CE40CAE
   build_flags:
     dev_mode: false
     test_mode: false
@@ -15,7 +15,7 @@ compiled_package_info:
     force_recompilation: false
     lock_file: "./Move.lock"
     fetch_deps_only: false
-    skip_fetch_latest_git_deps: true
+    skip_fetch_latest_git_deps: false
     default_flavor: sui
     default_edition: ~
     deps_as_root: false
@@ -26,3 +26,4 @@ compiled_package_info:
 dependencies:
   - MoveStdlib
   - Sui
+  - oracle

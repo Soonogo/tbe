@@ -19,7 +19,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <NextUIProvider>
       <QueryClientProvider client={queryClient}>
-        <SuiClientProvider networks={networks} defaultNetwork="testnet">
+        <SuiClientProvider networks={networks} defaultNetwork="mainnet">
           <WalletProvider autoConnect>
             <App />
           </WalletProvider>

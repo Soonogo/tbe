@@ -68,7 +68,7 @@ export const Withdrawal = () => {
         if (!ownerCard?.gold || ownerCard?.gold?.length < 1) { return toast.error("No Gold Card") }
         const tx = new TransactionBlock();
         tx.moveCall({
-            target: `${PackageID}::card_collection::withdrawal`,
+            target: `${PackageID}::game::withdrawal`,
             arguments: [
                 tx.object(ownerCard?.copper[0].data.objectId),
                 tx.object(ownerCard?.silver[0].data.objectId),
@@ -98,7 +98,7 @@ export const Withdrawal = () => {
         const tx = new TransactionBlock();
         const coin = tx.splitCoins(tx.gas, [amount]);
         tx.moveCall({
-            target: `${PackageID}::card_collection::coining`,
+            target: `${PackageID}::game::coining`,
             arguments: [
                 coin,
                 tx.pure(amount),

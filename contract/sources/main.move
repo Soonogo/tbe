@@ -1,11 +1,10 @@
-module game::card_collection {
+module game::game {
     use sui::tx_context::{sender, TxContext};
     use std::string::{utf8,Self, String};
     use sui::transfer;
     use sui::object::{Self,ID, UID};
     use sui::package;
     use sui::display;
-    use game::weather::{WeatherOracle};
     use std::vector;
     use sui::address;
     use sui::clock::{Self, Clock};
@@ -20,6 +19,7 @@ module game::card_collection {
     use sui::clock::{ timestamp_ms};
     use sui::vec_map::VecMap;
     use sui::vec_map;
+    use oracle::weather::{WeatherOracle};
 
     // --------------- Error Code ---------------
 
@@ -31,6 +31,8 @@ module game::card_collection {
 
     const EGAMEMAXMIUMERROR:u64 = 3;
 
+    const EDAILYGAMETIME:u64 = 4;
+
 
     // --------------- Constant ---------------
 
@@ -38,8 +40,9 @@ module game::card_collection {
 
     const INPUTCOIN:u64 = 100_000_000;
 
-    // const DAILYTIME:u64 = 60000 * 60 * 12; // Every 12 hours
-    const DAILYTIME:u64 = 10000  ; // Every 12 hours
+    const DAILYTIME:u64 = 60000 * 60 * 12; // Every 12 hours
+
+    const DAILYGAMETIME:u64 = 60000 * 60 * 2; // Every 2 hours
 
     struct Profile has key,store {
         id: UID,
@@ -50,13 +53,13 @@ module game::card_collection {
 
     // --------------- Witness ---------------
 
-    struct CARD_COLLECTION has drop {}
+    struct GAME has drop {}
 
     // --------------- Events ----------------
 
     struct StartGame has copy, drop {
         id: ID,
-        result: u32,
+        result: u64,
         win:u64
     }
 
@@ -88,7 +91,7 @@ module game::card_collection {
     
     // --------------- Function ---------------
 
-    fun init(otw: CARD_COLLECTION, ctx: &mut TxContext) {
+    fun init(otw: GAME, ctx: &mut TxContext) {
         let keys = vector[
             utf8(b"name"),
             utf8(b"link"),
@@ -120,7 +123,7 @@ module game::card_collection {
             utf8(b"https://github.com/{name}"),
             utf8(b"{img_url}"),
             utf8(b"Game Card!"),
-            utf8(b"https://github.com"),
+            utf8(b"https://github.com/Soonogo/tbe"),
             utf8(b"Unknown Sui Fan")
         ];
 
@@ -149,7 +152,7 @@ module game::card_collection {
         })
     }
 
-    public entry fun daily_claim(gameHouse: &mut GamePoolHouse,clock: &Clock,ctx: &mut TxContext){
+    public entry fun daily_claim(weather_oracle:&WeatherOracle,gameHouse: &mut GamePoolHouse,clock: &Clock,ctx: &mut TxContext){
         let timestamp = timestamp_ms(clock);
         let receiver = sender(ctx);
         
@@ -158,10 +161,10 @@ module game::card_collection {
             assert!(timestamp - *value > DAILYTIME , EDAILY);
             update_game_vec(gameHouse, ctx);
             vec_map::insert(&mut gameHouse.account_map, receiver, timestamp);
-            daily_lottery(ctx)
+            daily_lottery(weather_oracle,clock,ctx)
         }else{
             vec_map::insert(&mut gameHouse.account_map, receiver, timestamp);
-            daily_lottery(ctx)
+            daily_lottery(weather_oracle,clock,ctx)
 
         }
     }
@@ -172,14 +175,14 @@ module game::card_collection {
         vec_map::remove(&mut gameHouse.account_map, &receiver);
     }
 
-    fun daily_lottery(ctx: &mut TxContext){
-        let r = 223321 % 3;
-        let nine: u32 = 3865470566; // 90%
-        let nine_nine: u32 = 4252017623; // 99%
-        if(r < nine){
+    fun daily_lottery(weather_oracle:&WeatherOracle,clock:&Clock,ctx: &mut TxContext){
+        let r = get_random(weather_oracle,clock,ctx) ;
+        // let nine: u32 = 3865470566; // 90%
+        // let nine_nine: u32 = 4252017623; // 99%
+        if(r % 16 == 0){
              send_claim_nft(b"copper",b"https://ipfs.io/ipfs/bafkreiel7xfens3mgrvgycgj3qiv6qao44me76eu4f3ugwthhmnffjiafi",101,ctx);
              event::emit(ObtainCard{result:101});
-            }else if(r < nine_nine){
+            }else if(r % 3 == 0){
              send_claim_nft(b"silver",b"https://ipfs.io/ipfs/bafkreiarcgkfez4xn4kvcuntvd3h54rp34tif6phhg66aenykg7ha7x4wy",102,ctx);
              event::emit(ObtainCard{result:102})
             }else{
@@ -192,8 +195,6 @@ module game::card_collection {
 
     public entry fun mint(name: String, img_url: String,description: String,  ctx: &mut TxContext) {
         let id = object::new(ctx);
-         let r = 223321 % 3;
-        event::emit(StartGame { id:object::uid_to_inner(&id),result:r,win:1});
         let card = Profile { id, name, img_url ,description};
         transfer::public_transfer(card,sender(ctx))
     }
@@ -234,10 +235,10 @@ module game::card_collection {
             gameHouse.balance = gameHouse.balance + balance;
     }
 
-    public entry fun start_game(gameHouse:&mut GamePoolHouse,guess: u8,clock:&Clock,coin:&mut Coin<SUI>,balance:u64,ctx: &mut TxContext){
+    public entry fun start_game(weather_oracle:&WeatherOracle,gameHouse:&mut GamePoolHouse,guess: u8,clock:&Clock,coin:&mut Coin<SUI>,balance:u64,ctx: &mut TxContext){
         let id = object::new(ctx);
         let timestamp = timestamp_ms(clock);
-        let r = 223321 % 3;
+        let r = get_random(weather_oracle,clock,ctx) % 3;
         let user_coin = coin::value(coin);
         assert!(coin::value(coin) == INPUTCOIN,ECOINERROR);
         let receiver = sender(ctx);
@@ -246,7 +247,7 @@ module game::card_collection {
             let value = vec_map::get_mut(&mut gameHouse.game_account_map, &receiver);
             let value2 = vec_map::get_mut(&mut gameHouse.game_account_time_map, &receiver);
             if(*value == GAMEMAXMIUM){
-                assert!(*value2 + 60000 < timestamp, 10);
+                assert!(*value2 + DAILYGAMETIME < timestamp, EDAILYGAMETIME);
                 vec_map::remove(&mut gameHouse.game_account_time_map, &receiver);
                 vec_map::remove(&mut gameHouse.game_account_map, &receiver);
                 vec_map::insert(&mut gameHouse.game_account_map, receiver, 1);
@@ -313,12 +314,12 @@ module game::card_collection {
             let coin_amount = coin::into_balance(split_coin);
             balance::join(&mut gameHouse.coin,coin_amount);
             gameHouse.balance = gameHouse.balance + balance;
-            daily_lottery(ctx)
+            daily_lottery(weather_oracle,clock,ctx)
         }else if(win==2){
             event::emit(StartGame { id:object::uid_to_inner(&id),result:r,win});
             let split_coin = coin::split(coin, balance, ctx);
             let coin_amount = coin::into_balance(split_coin);
-             balance::join(&mut gameHouse.coin,coin_amount);
+            balance::join(&mut gameHouse.coin,coin_amount);
             gameHouse.balance = gameHouse.balance + balance;
             transfer::public_transfer(GameNFT{id},sender(ctx))
         }else{
@@ -340,8 +341,55 @@ module game::card_collection {
              },sender(ctx))
     }
 
-    fun get_temp(weather_oracle: &WeatherOracle): u32 {
-        let geoname_id = 2988507; // Paris, France
-        oracle::weather::city_weather_oracle_temp(weather_oracle, geoname_id)   
-    }
+   fun u32_to_ascii(num: u32): vector<u8>  {
+      if (num == 0) {
+          return b"0"
+      };
+      let bytes = vector::empty<u8>();
+      while (num > 0) {
+          let remainder = num % 10; // get the last digit
+          num = num / 10; // remove the last digit
+          vector::push_back(&mut bytes, (remainder as u8) + 48); // ASCII value of 0 is 48
+      };
+      vector::reverse(&mut bytes);
+      return bytes
+  }
+
+  fun u64_to_ascii(num: u64): vector<u8>  {
+      if (num == 0) {
+          return b"0"
+      };
+      let bytes = vector::empty<u8>();
+      while (num > 0) {
+          let remainder = num % 10; // get the last digit
+          num = num / 10; // remove the last digit
+          vector::push_back(&mut bytes, (remainder as u8) + 48); // ASCII value of 0 is 48
+      };
+      vector::reverse(&mut bytes);
+      return bytes
+  }
+
+
+  fun get_random(weather_oracle: &WeatherOracle, clock: &Clock,ctx: &TxContext):u64{
+
+    let sender = tx_context::sender(ctx);
+    let tx_digest = tx_context::digest(ctx);
+    let random_pressure_p = oracle::weather::city_weather_oracle_pressure(weather_oracle, 2988507);
+    let random_pressure_l = oracle::weather::city_weather_oracle_pressure(weather_oracle, 88319);
+
+    let random_vector = vector::empty<u8>();
+    vector::append(&mut random_vector, address::to_bytes(copy sender));
+    vector::append(&mut random_vector, u32_to_ascii(random_pressure_p));
+    vector::append(&mut random_vector, u32_to_ascii(random_pressure_l));
+    vector::append(&mut random_vector, u64_to_ascii(clock::timestamp_ms(clock)));
+    vector::append(&mut random_vector, *copy tx_digest);
+
+    let temp1 = blake2b256(&random_vector);
+    let random_num_ex = bcs::peel_u64(&mut bcs::new(temp1));
+    let random_value = ((random_num_ex % 123) as u64);
+    debug::print(&random_value);
+    random_value
+  }
+
+
 }

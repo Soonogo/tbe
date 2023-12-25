@@ -1,7 +1,7 @@
 import { useCurrentAccount, useSignAndExecuteTransactionBlock, useSuiClient, useSuiClientQuery, useWallets } from "@mysten/dapp-kit";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { Card, CardBody } from "@nextui-org/react"
-import { GameShareOrbject, PackageID } from "../constant";
+import { GameShareOrbject, PackageID, WeatherOracle } from "../constant";
 import toast, { Toaster } from "react-hot-toast";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { strewFlowers } from "../utils";
@@ -61,8 +61,9 @@ export const Home = () => {
     const execClaim = () => {
         const tx = new TransactionBlock();
         tx.moveCall({
-            target: `${PackageID}::card_collection::daily_claim`,
+            target: `${PackageID}::game::daily_claim`,
             arguments: [
+                tx.object(WeatherOracle),
                 tx.object(GameShareOrbject),
                 tx.pure("0x06"),
             ]

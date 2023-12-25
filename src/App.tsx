@@ -1,8 +1,9 @@
-import { Input } from '@nextui-org/react'
-import { useState } from 'react'
-import { Outlet, RouterProvider, createHashRouter, useRoutes } from 'react-router-dom';
+import { Outlet, RouterProvider, createHashRouter } from 'react-router-dom';
 import { MintGitHubProfile } from './Page/MintGitHubProfile';
 import { Header } from './Componenet/Header';
+import { Game1 } from './Page/Game1';
+import { Home } from './Page/Home';
+import { Withdrawal } from './Page/Withdrawal';
 
 const Layout = () => (
   <>
@@ -13,14 +14,23 @@ const Layout = () => (
 const router = createHashRouter([
   {
     element: <Layout />,
-    children: [{
-      path: "/",
-      element: <div />,
-    },
-    {
-      path: "/mint",
-      element: <MintGitHubProfile />,
-    },
+    children: [
+      {
+        path: "/",
+        element: <Home />,
+      },
+      {
+        path: "/game",
+        element: <Game1 />,
+      },
+      {
+        path: "/reward",
+        element: <Withdrawal />,
+      },
+      {
+        path: "/mint",
+        element: <MintGitHubProfile />,
+      },
     ]
   }
 ]);
@@ -28,14 +38,7 @@ const router = createHashRouter([
 
 
 function App() {
-
-
-  return (
-    <>
-
-      <RouterProvider router={router} />
-    </>
-  )
+  return <RouterProvider router={router} />
 }
 
 export default App
